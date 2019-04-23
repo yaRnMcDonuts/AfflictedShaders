@@ -126,9 +126,7 @@ vec3 blending;
 
 
 
-invariant float brightestPointLight = 1.0;
- // IMPORTANT IDEA: after scaling down based on indoor vert colors and the actual time of day, scale BACK UP for anything near a point light (as an indoor light should increase illumination from lightprobe brighter)
-  
+float brightestPointLight = 0.0;
 
 #if defined(USE_VERTEX_COLORS_AS_SUN_INTENSITY)
     varying vec4 vertColors;
@@ -404,11 +402,9 @@ float deathVar = (1.0 - (livelinessValue));
     float factoredTimeOfDayScale = timeOfDayScale;
     #ifdef STATIC_SUN_INTENSITY
         indoorSunLightExposure = m_StaticSunIntensity;
-        brightestPointLight = 0.0;
     #endif
     #ifdef USE_VERTEX_COLORS_AS_SUN_INTENSITY
         indoorSunLightExposure = vertColors.r * indoorSunLightExposure;             //use R channel of vertexColors... *^.
-        brightestPointLight = 0.0;
     #endif
     
     
@@ -454,7 +450,7 @@ float deathVar = (1.0 - (livelinessValue));
                 
             }
             else{
-              //      brightestPointLight = fallOff;
+                  brightestPointLight = max(fallOff, brightestPointLight);
           
            }
    //     #endif
@@ -475,6 +471,7 @@ float deathVar = (1.0 - (livelinessValue));
     
     #endif
     
+    factoredTimeOfDayScale = max(factoredTimeOfDayScale, brightestPointLight);
     
     factoredTimeOfDayScale = max(factoredTimeOfDayScale, minVertLighting); //essentially just the vertColors.r (aka indoor liht exposure) multiplied by the time of day scale.
     
